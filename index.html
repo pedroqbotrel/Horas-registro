@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#ffffff">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Horas">
+<title>Horas</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+:root {
+  --white: #ffffff;
+  --gray-50: #f9f9f9;
+  --gray-100: #f0f0f0;
+  --gray-200: #e4e4e4;
+  --gray-400: #a0a0a0;
+  --gray-600: #555555;
+  --gray-900: #111111;
+  --blue: #2563EB;
+  --blue-bg: #EFF6FF;
+  --red: #DC2626;
+  --nav-h: 60px;
+  --safe-b: env(safe-area-inset-bottom, 0px);
+  --safe-t: env(safe-area-inset-top, 0px);
+}
+html, body { height: 100%; background: #fff; overflow: hidden; }
+body { font-family: 'Inter', system-ui, sans-serif; color: var(--gray-900); -webkit-font-smoothing: antialiased; }
+#app { display: flex; flex-direction: column; height: 100dvh; height: 100vh; background: #fff; }
+
+.screen { display: none; flex-direction: column; flex: 1; overflow: hidden; }
+.screen.active { display: flex; }
+
+.topbar {
+  background: #fff; border-bottom: 1px solid var(--gray-200);
+  padding: 14px 20px 12px; padding-top: calc(14px + var(--safe-t));
+  display: flex; align-items: center; justify-content: space-between; flex-shrink: 0;
+}
+.topbar-left h1 { font-size: 18px; font-weight: 700; color: var(--gray-900); letter-spacing: -0.3px; }
+.topbar-left p { font-size: 12px; color: var(--gray-400); margin-top: 1px; }
+.icon-btn {
+  width: 36px; height: 36px; border-radius: 50%; border: 1px solid var(--gray-200);
+  background: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center;
+  color: var(--gray-600); transition: background 0.1s;
+}
+.icon-btn:active { background: var(--gray-100); }
+
+.scroll { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 20px; padding-bottom: calc(var(--nav-h) + var(--safe-b) + 20px); }
+
+.nav {
+  position: fixed; bottom: 0; left: 0; right: 0;
+  background: #fff; border-top: 1px solid var(--gray-200);
+  display: flex; height: calc(var(--nav-h) + var(--safe-b));
+  padding-bottom: var(--safe-b); z-index: 100;
+}
+.nav-item {
+  flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 4px; border: none; background: none; cursor: pointer;
+  color: var(--gray-400); font-family: 'Inter', sans-serif; font-size: 11px; font-weight: 500; transition: color 0.1s;
+}
+.nav-item.active { color: var(--gray-900); }
+
+.section-label { font-size: 11px; font-weight: 600; color: var(--gray-400); letter-spacing: 0.07em; text-transform: uppercase; margin-bottom: 10px; }
+
+.cat-toggle { display: grid; grid-template-columns: 1fr 1fr; background: var(--gray-100); border-radius: 10px; padding: 3px; margin-bottom: 20px; }
+.cat-btn { padding: 10px; border: none; background: none; border-radius: 8px; font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 500; color: var(--gray-400); cursor: pointer; transition: all 0.15s; display: flex; align-items: center; justify-content: center; gap: 6px; }
+.cat-btn.active { background: #fff; color: var(--gray-900); font-weight: 600; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+.cat-btn.active-ext { background: #fff; color: var(--blue); font-weight: 600; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+
+.pills { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; }
+.pill { padding: 8px 14px; border-radius: 20px; border: 1.5px solid var(--gray-200); background: #fff; font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 500; color: var(--gray-600); cursor: pointer; transition: all 0.12s; white-space: nowrap; user-select: none; }
+.pill:active { transform: scale(0.96); }
+.pill.active-int { background: var(--gray-900); border-color: var(--gray-900); color: #fff; }
+.pill.active-ext { background: var(--blue); border-color: var(--blue); color: #fff; }
+
+.field { margin-bottom: 16px; }
+.field label { display: block; font-size: 13px; font-weight: 600; color: var(--gray-900); margin-bottom: 7px; }
+.field label span { font-weight: 400; color: var(--gray-400); }
+input, select, textarea { width: 100%; padding: 13px 14px; border: 1.5px solid var(--gray-200); border-radius: 10px; background: #fff; font-family: 'Inter', sans-serif; font-size: 15px; color: var(--gray-900); outline: none; -webkit-appearance: none; appearance: none; transition: border-color 0.12s; }
+input:focus, select:focus, textarea:focus { border-color: var(--gray-900); }
+textarea { min-height: 80px; resize: none; line-height: 1.5; }
+.select-wrap { position: relative; }
+.select-wrap::after { content: ''; position: absolute; right: 14px; top: 50%; transform: translateY(-50%); border: 5px solid transparent; border-top-color: var(--gray-400); pointer-events: none; }
+select { padding-right: 36px; }
+.time-row { display: grid; grid-template-columns: 1fr 28px 1fr; gap: 8px; align-items: center; }
+.time-sep { text-align: center; color: var(--gray-400); font-size: 16px; padding-top: 6px; }
+
+.btn-save { width: 100%; padding: 15px; border-radius: 10px; border: none; background: var(--gray-900); color: #fff; font-family: 'Inter', sans-serif; font-size: 15px; font-weight: 600; cursor: pointer; transition: opacity 0.12s; letter-spacing: -0.1px; }
+.btn-save:active { opacity: 0.85; }
+.btn-save:disabled { opacity: 0.4; cursor: not-allowed; }
+.btn-ghost { width: 100%; padding: 14px; border-radius: 10px; border: 1.5px solid var(--gray-200); background: #fff; color: var(--gray-600); font-family: 'Inter', sans-serif; font-size: 15px; font-weight: 500; cursor: pointer; transition: background 0.12s; }
+.btn-ghost:active { background: var(--gray-100); }
+
+.date-sep { display: flex; align-items: center; gap: 10px; font-size: 11px; font-weight: 600; color: var(--gray-400); letter-spacing: 0.07em; text-transform: uppercase; margin: 20px 0 10px; }
+.date-sep::before, .date-sep::after { content: ''; flex: 1; height: 1px; background: var(--gray-200); }
+
+.entry { display: flex; align-items: flex-start; gap: 14px; padding: 14px 0; border-bottom: 1px solid var(--gray-100); }
+.entry:last-child { border-bottom: none; }
+.entry-bar { width: 2px; min-height: 44px; border-radius: 2px; flex-shrink: 0; margin-top: 2px; }
+.bar-int { background: var(--gray-900); }
+.bar-ext { background: var(--blue); }
+.entry-body { flex: 1; min-width: 0; }
+.entry-act { font-size: 15px; font-weight: 600; color: var(--gray-900); }
+.entry-cli { font-size: 13px; color: var(--gray-600); margin-top: 2px; }
+.entry-obs { font-size: 13px; color: var(--gray-400); margin-top: 4px; line-height: 1.4; }
+.entry-right { text-align: right; flex-shrink: 0; }
+.entry-dur { font-size: 18px; font-weight: 700; color: var(--gray-900); letter-spacing: -0.5px; }
+.entry-time { font-size: 12px; color: var(--gray-400); margin-top: 3px; }
+.entry-del { background: none; border: none; cursor: pointer; color: var(--gray-400); padding: 4px; display: block; margin-top: 6px; margin-left: auto; }
+.entry-del:active { color: var(--red); }
+
+.stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 20px; }
+.stat { background: var(--gray-50); border-radius: 10px; padding: 14px 12px; }
+.stat-n { font-size: 22px; font-weight: 700; color: var(--gray-900); letter-spacing: -0.5px; }
+.stat-l { font-size: 12px; color: var(--gray-400); margin-top: 3px; }
+
+.period-tabs { display: grid; grid-template-columns: repeat(3, 1fr); background: var(--gray-100); border-radius: 10px; padding: 3px; gap: 2px; margin-bottom: 20px; }
+.period-tab { padding: 9px; border: none; background: none; border-radius: 8px; font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 500; color: var(--gray-400); cursor: pointer; transition: all 0.12s; }
+.period-tab.active { background: #fff; color: var(--gray-900); font-weight: 600; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+
+.client-row { display: flex; align-items: center; gap: 12px; padding: 14px 0; border-bottom: 1px solid var(--gray-100); }
+.client-row:last-child { border-bottom: none; }
+.client-avatar { width: 38px; height: 38px; border-radius: 50%; background: var(--gray-100); display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; color: var(--gray-600); flex-shrink: 0; }
+.client-info { flex: 1; }
+.client-name { font-size: 15px; font-weight: 600; color: var(--gray-900); }
+.client-proj { font-size: 12px; color: var(--gray-400); margin-top: 2px; }
+.client-hours { font-size: 18px; font-weight: 700; color: var(--gray-900); letter-spacing: -0.5px; }
+
+.overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.25); z-index: 200; align-items: flex-end; }
+.overlay.open { display: flex; }
+.sheet { background: #fff; border-radius: 16px 16px 0 0; padding: 20px; padding-bottom: calc(24px + var(--safe-b)); width: 100%; max-height: 88vh; overflow-y: auto; animation: sheetUp 0.2s ease; }
+@keyframes sheetUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+.sheet-handle { width: 36px; height: 4px; background: var(--gray-200); border-radius: 2px; margin: 0 auto 20px; }
+.sheet h2 { font-size: 18px; font-weight: 700; margin-bottom: 18px; color: var(--gray-900); }
+
+/* LOADING */
+.loading-bar {
+  position: fixed; top: 0; left: 0; right: 0; height: 2px;
+  background: var(--gray-900); z-index: 999;
+  transform: scaleX(0); transform-origin: left;
+  transition: transform 0.3s ease; display: none;
+}
+.loading-bar.active { display: block; transform: scaleX(0.7); }
+.loading-bar.done { transform: scaleX(1); transition: transform 0.1s ease; }
+
+/* SPINNER inline */
+.spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid rgba(255,255,255,0.4); border-top-color: #fff; border-radius: 50%; animation: spin 0.6s linear infinite; vertical-align: middle; margin-right: 6px; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.toast { position: fixed; bottom: calc(var(--nav-h) + var(--safe-b) + 12px); left: 50%; transform: translateX(-50%) translateY(12px); background: var(--gray-900); color: #fff; padding: 11px 18px; border-radius: 24px; font-size: 13px; font-weight: 500; white-space: nowrap; opacity: 0; transition: all 0.18s; z-index: 500; }
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+.empty { text-align: center; padding: 60px 20px; color: var(--gray-400); }
+.empty-icon { font-size: 36px; margin-bottom: 12px; opacity: 0.5; }
+.empty p { font-size: 14px; line-height: 1.6; }
+
+/* Erro de configuração */
+.config-banner { background: #FEF3C7; border: 1px solid #F59E0B; border-radius: 10px; padding: 14px 16px; margin-bottom: 20px; font-size: 13px; color: #92400E; line-height: 1.5; }
+.config-banner strong { display: block; margin-bottom: 4px; }
+
+@media (min-width: 700px) {
+  body { background: var(--gray-100); }
+  #app { max-width: 420px; margin: 0 auto; border-left: 1px solid var(--gray-200); border-right: 1px solid var(--gray-200); }
+}
+</style>
+</head>
+<body>
+
+<div class="loading-bar" id="loading-bar"></div>
+
+<div id="app">
+
+<!-- ── REGISTRAR ── -->
+<div id="scr-reg" class="screen active">
+  <div class="topbar">
+    <div class="topbar-left">
+      <h1>Registrar</h1>
+      <p id="tb-date"></p>
+    </div>
+    <button class="icon-btn" onclick="openSheet('sh-cli')" title="Novo cliente">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>
+    </button>
+  </div>
+  <div class="scroll" id="reg-scroll">
+    <div id="config-warn" class="config-banner" style="display:none">
+      <strong>⚠️ API não configurada</strong>
+      Abra o arquivo index.html e substitua <code>https://script.google.com/macros/s/AKfycbxMg8_JBprGVYjAqWP-tDgkQCOSDmxl2m3cqcc1pEDr0XUiptBIlxd4fwxrK3H4-C4AHQ/exec</code> pela URL do seu Google Apps Script.
+    </div>
+
+    <div class="section-label">Categoria</div>
+    <div class="cat-toggle">
+      <button class="cat-btn active" id="btn-int" onclick="setCat('int')">🏛 Interna</button>
+      <button class="cat-btn" id="btn-ext" onclick="setCat('ext')">🏗 Externa</button>
+    </div>
+
+    <div class="section-label">Atividade</div>
+    <div class="pills" id="pills"></div>
+
+    <div class="field">
+      <label>Cliente</label>
+      <div class="select-wrap">
+        <select id="f-client"><option value="">Carregando…</option></select>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Data</label>
+      <input type="date" id="f-date">
+    </div>
+
+    <div class="field">
+      <label>Horário</label>
+      <div class="time-row">
+        <input type="time" id="f-start">
+        <div class="time-sep">→</div>
+        <input type="time" id="f-end">
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Observação <span>(opcional)</span></label>
+      <textarea id="f-obs" placeholder="O que foi tratado, decisões, materiais…"></textarea>
+    </div>
+
+    <button class="btn-save" id="btn-save" onclick="saveEntry()">Salvar registro</button>
+  </div>
+</div>
+
+<!-- ── HISTÓRICO ── -->
+<div id="scr-hist" class="screen">
+  <div class="topbar">
+    <div class="topbar-left">
+      <h1>Histórico</h1>
+      <p id="hist-sub">—</p>
+    </div>
+    <button class="icon-btn" onclick="exportCSV()" title="Exportar CSV">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+    </button>
+  </div>
+  <div class="scroll" id="hist-list"></div>
+</div>
+
+<!-- ── CLIENTES ── -->
+<div id="scr-cli" class="screen">
+  <div class="topbar">
+    <div class="topbar-left">
+      <h1>Clientes</h1>
+      <p>Horas por cliente</p>
+    </div>
+    <button class="icon-btn" onclick="openSheet('sh-cli')" title="Novo cliente">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+    </button>
+  </div>
+  <div class="scroll">
+    <div class="period-tabs">
+      <button class="period-tab active" onclick="setPeriod('semana', this)">Semana</button>
+      <button class="period-tab" onclick="setPeriod('mes', this)">Mês</button>
+      <button class="period-tab" onclick="setPeriod('total', this)">Total</button>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="stat-n" id="st-h">—</div><div class="stat-l">Horas</div></div>
+      <div class="stat"><div class="stat-n" id="st-r">—</div><div class="stat-l">Registros</div></div>
+      <div class="stat"><div class="stat-n" id="st-c">—</div><div class="stat-l">Clientes</div></div>
+    </div>
+    <div id="cli-list"></div>
+  </div>
+</div>
+
+<nav class="nav">
+  <button class="nav-item active" onclick="go('reg', this)">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+    Registrar
+  </button>
+  <button class="nav-item" onclick="go('hist', this)">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+    Histórico
+  </button>
+  <button class="nav-item" onclick="go('cli', this)">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+    Clientes
+  </button>
+</nav>
+</div>
+
+<!-- SHEET: NOVO CLIENTE -->
+<div class="overlay" id="sh-cli">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <h2>Novo cliente</h2>
+    <div class="field">
+      <label>Nome *</label>
+      <input type="text" id="nc-name" placeholder="Ex: Família Oliveira">
+    </div>
+    <div class="field">
+      <label>Obra / Projeto <span>(opcional)</span></label>
+      <input type="text" id="nc-proj" placeholder="Ex: Apto Jardins · Reforma">
+    </div>
+    <button class="btn-save" id="btn-add-cli" onclick="addClient()" style="margin-bottom: 10px">Adicionar</button>
+    <button class="btn-ghost" onclick="closeSheet('sh-cli')">Cancelar</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ══════════════════════════════════════════════════════
+//  CONFIGURAÇÃO — substitua pela URL do seu Apps Script
+// ══════════════════════════════════════════════════════
+const API_URL = 'https://script.google.com/macros/s/AKfycbxMg8_JBprGVYjAqWP-tDgkQCOSDmxl2m3cqcc1pEDr0XUiptBIlxd4fwxrK3H4-C4AHQ/exec';
+
+// ══════════════════════════════════════════════════════
+//  ESTADO LOCAL (cache)
+// ══════════════════════════════════════════════════════
+let clients  = [];   // cache de clientes
+let entries  = [];   // cache de registros
+let curCat   = 'int';
+let curAct   = null;
+let curPeriod = 'semana';
+let saving   = false;
+
+const CONFIGURED = true;
+
+// ══════════════════════════════════════════════════════
+//  API
+// ══════════════════════════════════════════════════════
+async function apiGet(action) {
+  const res = await fetch(`${API_URL}?action=${action}`);
+  const json = await res.json();
+  if (!json.ok) throw new Error(json.error);
+  return json.data;
+}
+
+async function apiPost(action, data) {
+  const res = await fetch(API_URL, {
+    method: 'POST',
+    body: JSON.stringify({ action, ...data }),
+  });
+  const json = await res.json();
+  if (!json.ok) throw new Error(json.error);
+  return json.data;
+}
+
+// ══════════════════════════════════════════════════════
+//  ATIVIDADES
+// ══════════════════════════════════════════════════════
+const ACTS = {
+  int: ['Pré-reunião', 'Reunião', 'Pós-reunião', 'Gestão de orçamentos', 'Projeto / desenho', 'Pesquisa', 'Geral'],
+  ext: ['Visita à obra', 'Saída com cliente · Loja', 'Reunião presencial', 'Medição / vistoria', 'Entrega de projeto'],
+};
+
+function renderPills() {
+  document.getElementById('pills').innerHTML = ACTS[curCat].map(a =>
+    `<button class="pill ${curAct === a ? (curCat === 'int' ? 'active-int' : 'active-ext') : ''}" onclick="pickAct('${a.replace(/'/g, "\\'")}')">${a}</button>`
+  ).join('');
+}
+function pickAct(a) { curAct = a; renderPills(); }
+function setCat(c) {
+  curCat = c; curAct = null;
+  document.getElementById('btn-int').className = 'cat-btn' + (c === 'int' ? ' active' : '');
+  document.getElementById('btn-ext').className = 'cat-btn' + (c === 'ext' ? ' active-ext' : '');
+  renderPills();
+}
+
+// ══════════════════════════════════════════════════════
+//  CLIENTES
+// ══════════════════════════════════════════════════════
+async function loadClients() {
+  if (!CONFIGURED) { renderClientSelect(); return; }
+  try {
+    clients = await apiGet('getClientes');
+    renderClientSelect();
+    renderClientList();
+  } catch (e) {
+    toast('Erro ao carregar clientes');
+  }
+}
+
+function renderClientSelect() {
+  document.getElementById('f-client').innerHTML =
+    '<option value="">Selecionar cliente…</option>' +
+    clients.map(c => `<option value="${c.id}">${c.nome}${c.projeto ? ' · ' + c.projeto : ''}</option>`).join('');
+}
+
+async function addClient() {
+  const nome = document.getElementById('nc-name').value.trim();
+  if (!nome) { toast('Nome obrigatório'); return; }
+  const projeto = document.getElementById('nc-proj').value.trim();
+
+  if (!CONFIGURED) { toast('API não configurada'); return; }
+
+  setBtnLoading('btn-add-cli', true);
+  try {
+    const novo = await apiPost('addCliente', { data: { nome, projeto } });
+    clients.push(novo);
+    document.getElementById('nc-name').value = '';
+    document.getElementById('nc-proj').value = '';
+    closeSheet('sh-cli');
+    renderClientSelect();
+    renderClientList();
+    toast('Cliente adicionado');
+  } catch (e) {
+    toast('Erro ao adicionar cliente');
+  } finally {
+    setBtnLoading('btn-add-cli', false);
+  }
+}
+
+// ══════════════════════════════════════════════════════
+//  REGISTROS
+// ══════════════════════════════════════════════════════
+async function loadEntries() {
+  if (!CONFIGURED) return;
+  showLoading(true);
+  try {
+    entries = await apiGet('getRegistros');
+    renderHist();
+    renderClientList();
+  } catch (e) {
+    toast('Erro ao carregar registros');
+  } finally {
+    showLoading(false);
+  }
+}
+
+async function saveEntry() {
+  if (saving) return;
+  const cid   = document.getElementById('f-client').value;
+  const start = document.getElementById('f-start').value;
+  const end   = document.getElementById('f-end').value;
+  const date  = document.getElementById('f-date').value;
+  const obs   = document.getElementById('f-obs').value.trim();
+
+  if (!curAct)        { toast('Selecione uma atividade'); return; }
+  if (!cid)           { toast('Selecione um cliente'); return; }
+  if (!date)          { toast('Informe a data'); return; }
+  if (!start || !end) { toast('Informe início e fim'); return; }
+
+  const [sh, sm] = start.split(':').map(Number);
+  const [eh, em] = end.split(':').map(Number);
+  const dur = (eh * 60 + em) - (sh * 60 + sm);
+  if (dur <= 0) { toast('Horário inválido'); return; }
+
+  if (!CONFIGURED) { toast('API não configurada'); return; }
+
+  const client = clients.find(c => c.id == cid);
+  const payload = {
+    clienteId:   cid,
+    clienteNome: client.nome,
+    categoria:   curCat,
+    atividade:   curAct,
+    data:        date,
+    inicio:      start,
+    fim:         end,
+    duracaoMin:  dur,
+    observacao:  obs,
+  };
+
+  saving = true;
+  setBtnLoading('btn-save', true, 'Salvando…');
+  try {
+    const novo = await apiPost('addRegistro', { data: payload });
+    entries.unshift(novo);
+    document.getElementById('f-obs').value = '';
+    curAct = null; renderPills();
+    renderHist();
+    renderClientList();
+    toast('Registro salvo ✓');
+  } catch (e) {
+    toast('Erro ao salvar');
+  } finally {
+    saving = false;
+    setBtnLoading('btn-save', false, 'Salvar registro');
+  }
+}
+
+async function delEntry(id) {
+  if (!confirm('Remover este registro?')) return;
+  showLoading(true);
+  try {
+    await apiPost('delRegistro', { id });
+    entries = entries.filter(e => e.id != id);
+    renderHist();
+    renderClientList();
+    toast('Removido');
+  } catch (e) {
+    toast('Erro ao remover');
+  } finally {
+    showLoading(false);
+  }
+}
+
+// ══════════════════════════════════════════════════════
+//  RENDER HISTÓRICO
+// ══════════════════════════════════════════════════════
+function renderHist() {
+  const list = document.getElementById('hist-list');
+  if (!entries.length) {
+    list.innerHTML = '<div class="empty"><div class="empty-icon">📋</div><p>Nenhum registro ainda.</p></div>';
+    document.getElementById('hist-sub').textContent = '—';
+    return;
+  }
+
+  const total = entries.reduce((s, e) => s + Number(e.duracaoMin), 0);
+  document.getElementById('hist-sub').textContent = fmtDur(total) + ' registradas';
+
+  const groups = {};
+  entries.forEach(e => { (groups[e.data] = groups[e.data] || []).push(e); });
+  const t = today();
+
+  list.innerHTML = Object.keys(groups).sort((a, b) => b.localeCompare(a)).map(date => {
+    const dm    = groups[date].reduce((s, e) => s + Number(e.duracaoMin), 0);
+    const label = date === t ? 'Hoje' : fmtDate(date);
+    return `<div class="date-sep">${label} · ${fmtDur(dm)}</div>` +
+      groups[date].map(e => `
+        <div class="entry">
+          <div class="entry-bar ${e.categoria === 'ext' ? 'bar-ext' : 'bar-int'}"></div>
+          <div class="entry-body">
+            <div class="entry-act">${e.atividade}</div>
+            <div class="entry-cli">${e.clienteNome}</div>
+            ${e.observacao ? `<div class="entry-obs">${e.observacao}</div>` : ''}
+          </div>
+          <div class="entry-right">
+            <div class="entry-dur">${fmtDur(Number(e.duracaoMin))}</div>
+            <div class="entry-time">${e.inicio} – ${e.fim}</div>
+            <button class="entry-del" onclick="delEntry('${e.id}')">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg>
+            </button>
+          </div>
+        </div>`
+      ).join('');
+  }).join('');
+}
+
+// ══════════════════════════════════════════════════════
+//  RENDER CLIENTES
+// ══════════════════════════════════════════════════════
+function setPeriod(p, btn) {
+  curPeriod = p;
+  document.querySelectorAll('.period-tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderClientList();
+}
+
+function renderClientList() {
+  const now = new Date();
+  const inP = d => {
+    const dt = new Date(d + 'T12:00:00');
+    if (curPeriod === 'total') return true;
+    if (curPeriod === 'semana') {
+      const day = now.getDay(), mon = new Date(now);
+      mon.setDate(now.getDate() - (day === 0 ? 6 : day - 1)); mon.setHours(0, 0, 0, 0);
+      return dt >= mon;
+    }
+    return dt.getMonth() === now.getMonth() && dt.getFullYear() === now.getFullYear();
+  };
+
+  const fe    = entries.filter(e => inP(e.data));
+  const total = fe.reduce((s, e) => s + Number(e.duracaoMin), 0);
+  const byC   = {};
+  fe.forEach(e => { byC[e.clienteId] = (byC[e.clienteId] || 0) + Number(e.duracaoMin); });
+
+  document.getElementById('st-h').textContent = fmtDur(total);
+  document.getElementById('st-r').textContent = fe.length;
+  document.getElementById('st-c').textContent = new Set(fe.map(e => e.clienteId)).size;
+
+  const list = document.getElementById('cli-list');
+  if (!clients.length) {
+    list.innerHTML = '<div class="empty"><div class="empty-icon">👤</div><p>Nenhum cliente cadastrado.</p></div>';
+    return;
+  }
+
+  list.innerHTML = [...clients]
+    .sort((a, b) => (byC[b.id] || 0) - (byC[a.id] || 0))
+    .map(c => {
+      const init = c.nome.split(' ').slice(0, 2).map(w => w[0]).join('').toUpperCase();
+      return `<div class="client-row">
+        <div class="client-avatar">${init}</div>
+        <div class="client-info">
+          <div class="client-name">${c.nome}</div>
+          <div class="client-proj">${c.projeto || '—'}</div>
+        </div>
+        <div class="client-hours">${fmtDur(byC[c.id] || 0)}</div>
+      </div>`;
+    }).join('');
+}
+
+// ══════════════════════════════════════════════════════
+//  EXPORT CSV
+// ══════════════════════════════════════════════════════
+function exportCSV() {
+  if (!entries.length) { toast('Nenhum dado'); return; }
+  const rows = [
+    'Data,Cliente,Obra,Categoria,Atividade,Início,Fim,Duração (min),Observação',
+    ...entries.map(e => {
+      const c = clients.find(x => x.id == e.clienteId);
+      return [e.data, e.clienteNome, c?.projeto || '', e.categoria === 'ext' ? 'Externa' : 'Interna', e.atividade, e.inicio, e.fim, e.duracaoMin, e.observacao || '']
+        .map(v => `"${String(v).replace(/"/g, '""')}"`).join(',');
+    })
+  ].join('\n');
+  const a = document.createElement('a');
+  a.href = 'data:text/csv;charset=utf-8,\uFEFF' + encodeURIComponent(rows);
+  a.download = 'horas-' + today() + '.csv';
+  a.click();
+  toast('CSV exportado');
+}
+
+// ══════════════════════════════════════════════════════
+//  UTILS
+// ══════════════════════════════════════════════════════
+function go(scr, btn) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+  document.getElementById('scr-' + scr).classList.add('active');
+  btn.classList.add('active');
+  if (scr === 'hist') { loadEntries(); }
+  if (scr === 'cli')  { loadEntries(); }
+}
+
+function openSheet(id)  { document.getElementById(id).classList.add('open'); }
+function closeSheet(id) { document.getElementById(id).classList.remove('open'); }
+document.querySelectorAll('.overlay').forEach(o =>
+  o.addEventListener('click', e => { if (e.target === o) o.classList.remove('open'); })
+);
+
+function showLoading(on) {
+  const bar = document.getElementById('loading-bar');
+  bar.className = 'loading-bar' + (on ? ' active' : ' done');
+  if (!on) setTimeout(() => bar.className = 'loading-bar', 300);
+}
+
+function setBtnLoading(id, loading, label) {
+  const btn = document.getElementById(id);
+  if (loading) {
+    btn.disabled = true;
+    btn.innerHTML = label ? `<span class="spinner"></span>${label}` : `<span class="spinner"></span>`;
+  } else {
+    btn.disabled = false;
+    btn.innerHTML = label || btn.innerHTML;
+  }
+}
+
+let _tt;
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  clearTimeout(_tt); _tt = setTimeout(() => t.classList.remove('show'), 2400);
+}
+
+function today() { return new Date().toISOString().split('T')[0]; }
+function fmtDur(min) {
+  const h = Math.floor(min / 60), m = min % 60;
+  return h ? (m ? `${h}h ${m}m` : `${h}h`) : `${m}m`;
+}
+function fmtDate(d) {
+  return new Date(d + 'T12:00:00').toLocaleDateString('pt-BR', { weekday: 'short', day: 'numeric', month: 'short' });
+}
+
+// ══════════════════════════════════════════════════════
+//  INIT
+// ══════════════════════════════════════════════════════
+(function init() {
+  document.getElementById('tb-date').textContent =
+    new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' });
+  document.getElementById('f-date').value = today();
+
+  if (!CONFIGURED) {
+    document.getElementById('config-warn').style.display = 'block';
+    document.getElementById('f-client').innerHTML = '<option>Configure a API primeiro</option>';
+  }
+
+  renderPills();
+  loadClients();
+  loadEntries();
+})();
+</script>
+</body>
+</html>

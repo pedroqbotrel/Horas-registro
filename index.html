@@ -361,9 +361,13 @@ const ACTS = {
 };
 
 function renderPills() {
-  document.getElementById('pills').innerHTML = ACTS[curCat].map(a =>
-    `<button class="pill ${curAct === a ? (curCat === 'int' ? 'active-int' : 'active-ext') : ''}" onclick="pickAct('${a.replace(/'/g, "\\'")}')">${a}</button>`
-  ).join('');
+  document.getElementById('pills').innerHTML = ACTS[curCat].map(a => {
+    const isActive = curAct === a;
+    const activeClass = curCat === 'int' ? 'active-int' : 'active-ext';
+    const inactiveClass = 'pill-' + curCat;
+    const cls = isActive ? activeClass : inactiveClass;
+    return `<button class="pill ${cls}" onclick="pickAct('${a.replace(/'/g, "\\'")}')">${a}</button>`;
+  }).join('');
 }
 function pickAct(a) { curAct = a; renderPills(); }
 function setCat(c) {

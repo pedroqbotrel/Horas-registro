@@ -74,8 +74,8 @@ color: var(–gray-400); font-family: ‘Inter’, sans-serif; font-size: 13px; 
 .pill-int { background: #F5F5F5; border-color: #D0D0D0; }
 .pill-ext { background: #EFF6FF; border-color: #BFDBFE; }
 .pill:active { transform: scale(0.96); }
-.pill.active-int { background: var(–gray-900); border-color: var(–gray-900); color: #fff; }
-.pill.active-ext { background: var(–blue); border-color: var(–blue); color: #fff; }
+.pill.active-int { background: var(–gray-900) !important; border-color: var(–gray-900) !important; color: #fff !important; }
+.pill.active-ext { background: var(–blue) !important; border-color: var(–blue) !important; color: #fff !important; }
 
 .field { margin-bottom: 20px; }
 .field label { display: block; font-size: 17px; font-weight: 700; color: var(–gray-900); margin-bottom: 8px; }
@@ -356,18 +356,14 @@ async function apiPost(action, data) {
 //  ATIVIDADES
 // ══════════════════════════════════════════════════════
 const ACTS = {
-  int: ['📋 Pré-reunião', '🗣 Reunião', '✍ Pós-reunião', '✅ WhatsApp', '💰 Gestão de orçamentos', '✏ Projeto / desenho', '🔍 Pesquisa', '📁 Geral'],
+  int: ['📋 Pré-reunião', '🗣 Reunião', '✍ Pós-reunião', '💬 WhatsApp', '💰 Gestão de orçamentos', '✏ Projeto / desenho', '🔍 Pesquisa', '📁 Geral'],
   ext: ['🏗 Visita à obra', '🛍 Saída com cliente · Loja', '🤝 Reunião presencial', '📐 Medição / vistoria', '📦 Entrega de projeto'],
 };
 
 function renderPills() {
-  document.getElementById('pills').innerHTML = ACTS[curCat].map(a => {
-    const isActive = curAct === a;
-    const activeClass = curCat === 'int' ? 'active-int' : 'active-ext';
-    const inactiveClass = 'pill-' + curCat;
-    const cls = isActive ? activeClass : inactiveClass;
-    return `<button class="pill ${cls}" onclick="pickAct('${a.replace(/'/g, "\\'")}')">${a}</button>`;
-  }).join('');
+  document.getElementById('pills').innerHTML = ACTS[curCat].map(a =>
+    `<button class="pill ${curAct === a ? (curCat === 'int' ? 'active-int' : 'active-ext') : ''}" onclick="pickAct('${a.replace(/'/g, "\\'")}')">${a}</button>`
+  ).join('');
 }
 function pickAct(a) { curAct = a; renderPills(); }
 function setCat(c) {
